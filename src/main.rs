@@ -3,7 +3,7 @@ use std::fs::read_to_string;
 use clap::Parser;
 
 mod todo;
-use crate::todo::Todos;
+use crate::todo::{Todos, Todo};
 mod urgency;
 
 #[derive(Parser, Debug)]
@@ -33,11 +33,28 @@ fn main() {
     let mut tds: Todos =
         serde_json::from_str(&mut read_to_string(&mut todos_file).expect("Missing todos file."))
             .expect("Malformed todos file");
+
+    if args.add.len() != 0 {
+        if args.add.len() < 4 {
+            panic!("Not enough information about new todo!");
+        }
+        tds.tasks.push(Todo::new(
+            args.add[0],
+            args.add[1],
+            args.add[2],
+            args.add[3],
+        ));
+    }
     
+    if args.remove.len() != 0 {
+        for r in args.remove {
+            tds.remove(r);
+        }
+    }
+
     if args.add.len() + args.remove.len() + args.update.len() != 0 {
         save_todos(&tds);
     }
-
     if args.all {
         pretty_print();
     } else if args.list {
